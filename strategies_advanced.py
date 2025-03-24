@@ -28,15 +28,12 @@ def xyz_wing(grid, candidates):
         pivot_candidates = {}           # dictionary for pivot candidates
         xz_wing_candidates = {}         # dictianary for xz wing candidates
         
-        # seek for potential pivot in the box
+        # seek for potential pivot candidates and for xz-wing candidates in the box
         for row, col in box:
             cell_candidates = candidates[row][col]
             
-            length = len(cell_candidates)
-
-            
             # if cell has 3 candidates  it is potential xyz pivot point
-            if length == 3:
+            if len(cell_candidates) == 3:
                 key = tuple(cell_candidates)    # xyz candidate
                 
                 if key not in pivot_candidates:
@@ -46,7 +43,7 @@ def xyz_wing(grid, candidates):
             
             
             # if cell has 2 cadidates it is potential xz wing
-            if length == 2:
+            if len(cell_candidates) == 2:
                 key = tuple(cell_candidates)    # xz candidate
                 
                 if key not in xz_wing_candidates:
@@ -54,14 +51,17 @@ def xyz_wing(grid, candidates):
                     
                 xz_wing_candidates[key].append((row, col))
         
-                        
+
+
+
+
         # verifying box for pivot and xz candidates
-        # normalizing (removing multiple instances) pivot candidate dictionary
+        # normalizing (removing multiple instances) of pivot candidate in dictionary
         keys = []
         for key in pivot_candidates.keys():
             coordinates_list = pivot_candidates[key]
             if len(coordinates_list) > 1:       # finding all xyz candidates presented more than ones
-                keys.append(key)
+                keys.append(key)                # save keys list for xyz to be removed.
                 
         for key in keys:
             pivot_candidates.pop(key)           # removing xyz candidates presented more than ones
@@ -77,16 +77,81 @@ def xyz_wing(grid, candidates):
         for key in keys:
             xz_wing_candidates.pop(key)         # removing xz-wing candidates presented more than ones
 
-                 
-        # normalizing (removing) xz-wings candidates candidate doesn't meet pivot point candidates in the box    
-        # xz_keys = []
-        # pivot_keys = []
+        
+
 
         # removing pivot points candidates if no xz candidates meets
         if len(xz_wing_candidates) == 0:
             pivot_candidates = {}
 
         
+
+        # We can clean up pivot and wings candidates
+        if len(pivot_candidates) == 0 or len(xz_wing_candidates) == 0:
+            print(f'=== box {k} has no pivots ===')
+            continue
+        
+        xz_key_to_save = []
+        pivot_key_to_save = []    
+        for pivot_key in pivot_candidates.keys():   # pivot_key is potential xyz candidate
+            pivot_key_status = False                
+
+            for xz_key in xz_wing_candidates.keys():
+
+                if not set(xz_key).issubset(pivot_key):continue
+                pivot_key_status = True
+                xz_key_to_save.append(xz_key)
+
+
+            if pivot_key_status:
+                pivot_key_to_save.append(pivot_key)
+        
+        # removing pivots which doesn't meet xz-wings
+        pivot_keys_to_remove = [key for key in pivot_candidates.keys() if key not in pivot_key_to_save]
+        for key in pivot_keys_to_remove:
+            pivot_candidates.pop(key)
+
+        # removing xz-wings which doesn't meet pivots
+        xz_keys_to_remove = [key for key in xz_wing_candidates.keys() if key not in xz_key_to_save] 
+        for key in xz_keys_to_remove:
+            xz_wing_candidates.pop(key)
+        
+
+        print(f'pivot candidates:\t{pivot_candidates}')
+        print(f'xz-wing candidates:\t{xz_wing_candidates}')
+        if len(pivot_candidates) == 0 or len(xz_wing_candidates) == 0: 
+            print(f'=== box {k} has no pivots ===')
+            continue
+
+
+
+
+
+
+
+
+
+        # creation of wing candidates in the box
+        for pivot_index in range(len(pivot_candidates)):
+            pivot_key = list(pivot_candidates.keys())[pivot_index]            
+            xz_wing_key = list(xz_wing_candidates.keys())[pivot_index]
+            pivot_coordinate = pivot_candidates[pivot_key][0]
+            xz_wing_coordinate = xz_wing_candidates[xz_wing_key][0]
+
+            print(f'pivot_key: {pivot_key}, xz_wing_key: {xz_wing_key}')
+            print(f'pivot_coordinate: {pivot_coordinate}, xz_wing_coordinate: {xz_wing_coordinate}')
+
+
+
+
+
+
+
+
+
+
+
+
         # creation list of wing candidates in the box
         box_wing_candidates = []        
         for xz_candidate_key in xz_wing_candidates.keys():
@@ -107,6 +172,9 @@ def xyz_wing(grid, candidates):
                     box_wing_candidates.append(wing_candidate)
             
         
+
+
+
         # defined potential xyz wing candidates in the box            
         for wing_candidate in box_wing_candidates:
                        
@@ -116,14 +184,15 @@ def xyz_wing(grid, candidates):
             yz_column_candidates = [row[pivot_col] for row in candidates]   # extracts col values from candidates
             yz_row_candidates = candidates[pivot_row]                    # extracts row values from candidates
 
-            print(f'yz_column_candidates: {yz_column_candidates}')
-            print(f'yz_row_candidates: {yz_row_candidates}')
+            # print(f'yz_column_candidates: {yz_column_candidates}')
+            # print(f'yz_row_candidates: {yz_row_candidates}')
 
             yz_wing_key = set()
             yz_wing_coordinate = set() 
 
             for row in range(9):
-                yz_candidate = yz_column_candidates[row]     
+                yz_candidate = yz_column_candidates[row]
+                if yz_candidate == wing_candidate['xz_wing_key']: break # skip if yz candidate is same as xz wing    
                 if len(yz_candidate) != 2: continue    # yz candidate is pair                 
                 if not set(yz_candidate).issubset(wing_candidate['pivot_key']): continue    # ya candidate is subset of pivot key
                 if set(yz_candidate) == set(wing_candidate['xz_wing_key']): continue
@@ -140,7 +209,8 @@ def xyz_wing(grid, candidates):
             yz_wing_coordinate = set() 
 
             for col in range(9):
-                yz_candidate = yz_row_candidates[col]     
+                yz_candidate = yz_row_candidates[col]
+                if yz_candidate == wing_candidate['xz_wing_key']: break # skip if yz candidate is same as xz wing         
                 if len(yz_candidate) != 2: continue
                 if not set(yz_candidate).issubset(wing_candidate['pivot_key']): continue
                 if set(yz_candidate) == set(wing_candidate['xz_wing_key']): continue
@@ -191,6 +261,8 @@ def xyz_wing(grid, candidates):
             pivot_candidates.pop(key)
         
         
+
+
         if len(pivot_candidates) == 0 or len(xz_wing_candidates) == 0:
             print(f'=== box {k} has no pivots ===')
         else:        
