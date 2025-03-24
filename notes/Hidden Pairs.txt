@@ -1,0 +1,128 @@
+def hidden_pairs_tuples(grid, candidates):
+    """Find and eliminate Hidden Pairs, Triples, and Quadruples."""
+    units = get_units(grid)  # Rows, Columns, and Boxes
+    
+    for unit in units:
+        candidate_positions = {}  # Dictionary to track occurrences
+        
+        # Count occurrences of each candidate in the unit
+        for row, col in unit:
+            for num in candidates[row][col]:
+                if num not in candidate_positions:
+                    candidate_positions[num] = []
+                candidate_positions[num].append((row, col))
+        
+        # Identify Hidden Pairs/Tuples
+        for n in range(2, 5):  # Pairs (2), Triples (3), Quadruples (4)
+            possible_tuples = [nums for nums in candidate_positions if len(candidate_positions[nums]) == n]
+            
+            # Check for valid sets of N numbers appearing in N cells
+            for combo in combinations(possible_tuples, n):
+                affected_cells = set()
+                for num in combo:
+                    affected_cells.update(candidate_positions[num])
+                
+                if len(affected_cells) == n:  # Found Hidden Pair/Tuple
+                    for row, col in affected_cells:
+                        candidates[row][col] = set(combo)  # Keep only these numbers
+    
+    return candidates
+
+
+======================================================================================================
+
+from itertools import combinations
+
+def get_units(grid):
+    """Returns all rows, columns, and 3x3 boxes as units."""
+    units = []
+    
+    # Rows
+    for row in range(9):
+        units.append([(row, col) for col in range(9)])
+    
+    # Columns
+    for col in range(9):
+        units.append([(row, col) for row in range(9)])
+    
+    # 3x3 Boxes
+    for box_row in range(0, 9, 3):
+        for box_col in range(0, 9, 3):
+            units.append([(box_row + i, box_col + j) for i in range(3) for j in range(3)])
+    
+    return units
+
+def naked_pairs_tuples(grid, candidates):
+    """Find and eliminate Naked Pairs, Triples, and Quadruples from candidates."""
+    units = get_units(grid)
+    
+    for unit in units:
+        value_counts = {}  # Dictionary to track candidate sets
+        
+        # Count occurrences of each candidate set
+        for row, col in unit:
+            if len(candidates[row][col]) > 1:  # Only check multi-value cells
+                key = tuple(sorted(candidates[row][col]))  # Convert to tuple
+                value_counts[key] = value_counts.get(key, []) + [(row, col)]
+        
+        # Process Naked Pairs/Tuples
+        for key, cells in value_counts.items():
+            if len(cells) == len(key):  # Naked Pair/Triple/etc. found
+                for row, col in unit:
+                    if (row, col) not in cells:
+                        # Remove the Naked Pair/Tuple values from other cells
+                        candidates[row][col] -= set(key)
+    
+    return candidates
+
+def hidden_pairs_tuples(grid, candidates):
+    """Find and eliminate Hidden Pairs, Triples, and Quadruples."""
+    units = get_units(grid)  # Rows, Columns, and Boxes
+    
+    for unit in units:
+        candidate_positions = {}  # Dictionary to track occurrences
+        
+        # Count occurrences of each candidate in the unit
+        for row, col in unit:
+            for num in candidates[row][col]:
+                if num not in candidate_positions:
+                    candidate_positions[num] = []
+                candidate_positions[num].append((row, col))
+        
+        # Identify Hidden Pairs/Tuples
+        for n in range(2, 5):  # Pairs (2), Triples (3), Quadruples (4)
+            possible_tuples = [nums for nums in candidate_positions if len(candidate_positions[nums]) == n]
+            
+            # Check for valid sets of N numbers appearing in N cells
+            for combo in combinations(possible_tuples, n):
+                affected_cells = set()
+                for num in combo:
+                    affected_cells.update(candidate_positions[num])
+                
+                if len(affected_cells) == n:  # Found Hidden Pair/Tuple
+                    for row, col in affected_cells:
+                        candidates[row][col] = set(combo)  # Keep only these numbers
+    
+    return candidates
+
+# Example of initializing a candidate matrix
+# Each empty cell contains {1-9}, filled cells have an empty set
+sudoku_grid = [
+    [2, 1, 0, 0, 6, 0, 0, 0, 0],
+    [0, 0, 0, 5, 0, 0, 0, 0, 6],
+    [0, 0, 0, 0, 8, 4, 0, 5, 0],
+    [0, 0, 2, 0, 0, 6, 9, 4, 0],
+    [0, 0, 0, 1, 0, 3, 0, 0, 0],
+    [0, 9, 8, 4, 0, 0, 1, 0, 0],
+    [0, 3, 0, 9, 1, 0, 0, 0, 0],
+    [6, 0, 0, 0, 0, 5, 0, 0, 0],
+    [0, 0, 0, 0, 3, 0, 0, 1, 7]
+]
+
+candidates = [[set(range(1, 10)) if cell == 0 else set() for cell in row] for row in sudoku_grid]
+
+# Run Naked Pairs/Tuples strategy
+candidates = naked_pairs_tuples(sudoku_grid, candidates)
+
+# Run Hidden Pairs/Tuples strategy
+candidates = hidden_pairs_tuples(sudoku_grid, candidates)

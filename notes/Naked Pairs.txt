@@ -1,0 +1,86 @@
+def naked_pairs_tuples(grid, candidates):
+    for unit in get_all_units(grid):  # Rows, Columns, and Boxes
+        value_counts = {}  # Dictionary to track candidate sets
+        
+        # Count occurrences of each candidate set
+        for cell in unit:
+            if len(candidates[cell]) > 1:  # Only check multi-value cells
+                key = tuple(sorted(candidates[cell]))  # Convert to tuple
+                value_counts[key] = value_counts.get(key, []) + [cell]
+
+        # Process Naked Pairs/Tuples
+        for key, cells in value_counts.items():
+            if len(cells) == len(key):  # Naked Pair/Triple/etc. found
+                for cell in unit:
+                    if cell not in cells:
+                        # Remove the Naked Pair/Tuple values from other cells
+                        candidates[cell] -= set(key)
+
+    return candidates
+
+
+
+=========================================================================================
+
+def get_units(grid):
+    """Returns all rows, columns, and 3x3 boxes as units."""
+    units = []
+    
+    # Rows
+    for row in range(9):
+        units.append([(row, col) for col in range(9)])
+    
+    # Columns
+    for col in range(9):
+        units.append([(row, col) for row in range(9)])
+    
+    # 3x3 Boxes
+    for box_row in range(0, 9, 3):
+        for box_col in range(0, 9, 3):
+            units.append([(box_row + i, box_col + j) for i in range(3) for j in range(3)])
+    
+    return units
+
+
+def naked_pairs_tuples(grid, candidates):
+    """Find and eliminate Naked Pairs, Triples, and Quadruples from candidates."""
+    units = get_units(grid)
+    
+    for unit in units:
+        value_counts = {}  # Dictionary to track candidate sets
+        
+        # Count occurrences of each candidate set
+        for row, col in unit:
+            if len(candidates[row][col]) > 1:  # Only check multi-value cells
+                key = tuple(sorted(candidates[row][col]))  # Convert to tuple
+                value_counts[key] = value_counts.get(key, []) + [(row, col)]
+        
+        # Process Naked Pairs/Tuples
+        for key, cells in value_counts.items():
+            if len(cells) == len(key):  # Naked Pair/Triple/etc. found
+                for row, col in unit:
+                    if (row, col) not in cells:
+                        # Remove the Naked Pair/Tuple values from other cells
+                        candidates[row][col] -= set(key)
+    
+    return candidates
+
+
+# Example of initializing a candidate matrix
+# Each empty cell contains {1-9}, filled cells have an empty set
+sudoku_grid = [
+    [2, 1, 0, 0, 6, 0, 0, 0, 0],
+    [0, 0, 0, 5, 0, 0, 0, 0, 6],
+    [0, 0, 0, 0, 8, 4, 0, 5, 0],
+    [0, 0, 2, 0, 0, 6, 9, 4, 0],
+    [0, 0, 0, 1, 0, 3, 0, 0, 0],
+    [0, 9, 8, 4, 0, 0, 1, 0, 0],
+    [0, 3, 0, 9, 1, 0, 0, 0, 0],
+    [6, 0, 0, 0, 0, 5, 0, 0, 0],
+    [0, 0, 0, 0, 3, 0, 0, 1, 7]
+]
+
+candidates = [[set(range(1, 10)) if cell == 0 else set() for cell in row] for row in sudoku_grid]
+
+# Run Naked Pairs/Tuples strategy
+candidates = naked_pairs_tuples(sudoku_grid, candidates)

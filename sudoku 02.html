@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Table with Candidates</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        td {
+            border: 1px solid #999;
+        }
+        tr:nth-child(3n) td {
+            border-bottom: 2px solid #333;
+        }
+        td:nth-child(3n) {
+            border-right: 2px solid #333;
+        }
+        .cell {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+        .main-number {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .candidates {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-size: 10px;
+        }
+        .candidate {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sudoku Table with Candidates</h1>
+    <table id="sudokuTable"></table>
+    <div>
+        <button id="loadNumbers">Load Numbers</button>
+        <button id="loadCandidates">Load Candidates</button>
+    </div>
+
+    <script>
+        function createSudokuGrid() {
+            const table = document.getElementById('sudokuTable');
+            for (let row = 0; row < 9; row++) {
+                const tr = document.createElement('tr');
+                for (let col = 0; col < 9; col++) {
+                    const td = document.createElement('td');
+                    td.className = 'cell';
+                    td.setAttribute('data-row', row);
+                    td.setAttribute('data-col', col);
+
+                    const mainNumber = document.createElement('div');
+                    mainNumber.className = 'main-number';
+                    td.appendChild(mainNumber);
+
+                    const candidates = document.createElement('div');
+                    candidates.className = 'candidates';
+                    for (let i = 0; i < 9; i++) {
+                        const candidate = document.createElement('div');
+                        candidate.className = 'candidate';
+                        candidates.appendChild(candidate);
+                    }
+                    td.appendChild(candidates);
+
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+        }
+
+        function populateSudoku(data) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = sudokuTable.querySelector(`td[data-row="${row}"][data-col="${col}"]`);
+                    const mainNumber = cell.querySelector('.main-number');
+                    mainNumber.textContent = data[row][col] === 0 ? '' : data[row][col];
+                }
+            }
+        }
+
+        function populateCandidates(data) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = sudokuTable.querySelector(`td[data-row="${row}"][data-col="${col}"]`);
+                    const candidates = cell.querySelector('.candidates');
+                    const candidatesList = data[row][col];
+
+                    candidates.querySelectorAll('.candidate').forEach((candidateDiv, index) => {
+                        const number = index + 1;
+                        if (candidatesList.includes(number)) {
+                            candidateDiv.textContent = number;
+                        } else {
+                            candidateDiv.textContent = '';
+                        }
+                    });
+                }
+            }
+        }
+
+        function loadFile(callback) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.dat';
+            input.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function () {
+                        const data = JSON.parse(reader.result);
+                        callback(data);
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            input.click();
+        }
+
+        document.getElementById('loadNumbers').addEventListener('click', () => {
+            loadFile(populateSudoku);
+        });
+
+        document.getElementById('loadCandidates').addEventListener('click', () => {
+            loadFile(populateCandidates);
+        });
+
+        // Initialize the grid
+        createSudokuGrid();
+    </script>
+</body>
+</html>
