@@ -132,15 +132,22 @@ def xyz_wing(grid, candidates):
 
 
         # creation of wing candidates in the box
-        for pivot_index in range(len(pivot_candidates)):
-            pivot_key = list(pivot_candidates.keys())[pivot_index]            
-            xz_wing_key = list(xz_wing_candidates.keys())[pivot_index]
-            pivot_coordinate = pivot_candidates[pivot_key][0]
-            xz_wing_coordinate = xz_wing_candidates[xz_wing_key][0]
-
-            print(f'pivot_key: {pivot_key}, xz_wing_key: {xz_wing_key}')
-            print(f'pivot_coordinate: {pivot_coordinate}, xz_wing_coordinate: {xz_wing_coordinate}')
-
+        xyz_wing_candidates = []        
+        for pivot_candidate_key in pivot_candidates.keys():
+            xyz_wing_cadidate = {}
+            
+            if pivot_candidate_key not in xyz_wing_cadidate:
+                xyz_wing_cadidate[pivot_candidate_key] = pivot_candidates[pivot_candidate_key]
+                
+            for xz_candidate_key in xz_wing_candidates.keys():
+                if set(xz_candidate_key).issubset(set(pivot_candidate_key)):
+                    xyz_wing_cadidate[xz_candidate_key] = xz_wing_candidates[xz_candidate_key]
+                    
+            xyz_wing_candidates.append(xyz_wing_cadidate)
+            
+                        
+            
+        print(f'xyz_wing_candidates: {xyz_wing_candidates}')
 
 
 
