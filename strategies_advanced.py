@@ -1,6 +1,47 @@
 from sudoku_collection import last_resolved, last_resolved_candidates
 from sudoku_functions import print_sudoku, get_units, get_boxes
 
+def xyz_wing_1(grid, candidates):
+
+    boxes = get_boxes(grid) # get coordinates 
+    box_candidates = {}
+    n = 0
+    for box in boxes:
+        
+        for row, col in box:        
+            key = tuple(candidates[row][col])
+            if key not in box_candidates:
+                box_candidates[key] = []
+            box_candidates[key].append((row, col))
+
+        keys_to_remove = []
+        for key in box_candidates.keys():
+            if len(box_candidates[key]) != 1:
+                keys_to_remove.append(key)
+            if  len(key) != 2 and len(key) != 3:
+                keys_to_remove.append(key)
+
+        keys_to_remove = list(set(keys_to_remove))  # removing dublicates in the list.
+
+        for key in keys_to_remove:
+            box_candidates.pop(key)
+
+        for key in box_candidates.keys():
+            
+
+        print(f'box {n} candidates: {box_candidates}')
+        n += 1
+
+
+
+
+
+
+
+
+
+
+
 
 def xyz_wing(grid, candidates):
     """
@@ -91,6 +132,12 @@ def xyz_wing(grid, candidates):
             print(f'=== box {k} has no pivots ===')
             continue
         
+
+
+        # =============== info =========================
+        #this code could be updated with control of lis
+        # keys to delete.
+
         xz_key_to_save = []
         pivot_key_to_save = []    
         for pivot_key in pivot_candidates.keys():   # pivot_key is potential xyz candidate
@@ -123,37 +170,63 @@ def xyz_wing(grid, candidates):
             print(f'=== box {k} has no pivots ===')
             continue
 
+        #================================================================
+        # 
+        
 
 
-
-
-
-
-
-
-        # creation of wing candidates in the box
-        xyz_wing_candidates = []        
-        for pivot_candidate_key in pivot_candidates.keys():
-            xyz_wing_cadidate = {}
+        #================================================================
+        # # creation of wing candidates in the box
+        # xyz_wing_candidates = []        # list of potential xyz witngs which has pivot adn xz wing
+        # for pivot_candidate_key in pivot_candidates.keys():
+        #     xyz_wing_cadidate = {}      # member/element of xyz wings list
             
-            if pivot_candidate_key not in xyz_wing_cadidate:
-                xyz_wing_cadidate[pivot_candidate_key] = pivot_candidates[pivot_candidate_key]
+        #     if pivot_candidate_key not in xyz_wing_cadidate:
+        #         xyz_wing_cadidate[pivot_candidate_key] = pivot_candidates[pivot_candidate_key][0]   # we get first and single candidate
                 
-            for xz_candidate_key in xz_wing_candidates.keys():
-                if set(xz_candidate_key).issubset(set(pivot_candidate_key)):
-                    xyz_wing_cadidate[xz_candidate_key] = xz_wing_candidates[xz_candidate_key]
+        #     for xz_candidate_key in xz_wing_candidates.keys():
+        #         if set(xz_candidate_key).issubset(set(pivot_candidate_key)):
+        #             xyz_wing_cadidate[xz_candidate_key] = xz_wing_candidates[xz_candidate_key][0]   # we get first and single candidate
                     
-            xyz_wing_candidates.append(xyz_wing_cadidate)
+        #     xyz_wing_candidates.append(xyz_wing_cadidate)
             
                         
+        #  # list of xyz wings with one xz wing are prepeared
+        # print(f'xyz_wing_candidates: {xyz_wing_candidates}')
+
+        # for wing_candidate in xyz_wing_candidates:
+        #     pivot_key = list(wing_candidate.keys())[0]
+        #     pivot_row, pivot_col = wing_candidate[pivot_key]
+
+        #     xz_wing_key = list(wing_candidate.keys())[1]
+        #     xz_wing_row, xz_wing_col = wing_candidate[xz_candidate_key]
+
+        #     yz_wing_candidate_positions = []
+
+        #     if pivot_row != xz_wing_row:                            # if pivot and xz not in the same row
+        #         yz_wing_candidate_positions = units[pivot_row]      # candidates taken from row
+
+        #     for r, c in yz_wing_candidate_positions:
+                              
+        #         if len(candidates[r][c]) != 2: continue # only pair can be candidate
+        #         yz_candidate = tuple(candidates[r][c])
+        #         if set(yz_candidate).issubset(pivot_key) and set(yz_candidate) != set(xz_wing_key):
+        #             wing_candidate[yz_candidate] = (r, c)
+        #             wing_candidate['row'] = r
             
-        print(f'xyz_wing_candidates: {xyz_wing_candidates}')
+        #     if pivot_col != xz_wing_col:                             # if pivot and xz not in the same col
+        #         yz_wing_candidate_positions = units[pivot_col + 9]     
 
+        #     for r, c in yz_wing_candidate_positions:
+                              
+        #         if len(candidates[r][c]) != 2: continue # only pair can be candidate
+        #         yz_candidate = tuple(candidates[r][c])
+        #         if set(yz_candidate).issubset(pivot_key) and set(yz_candidate) != set(xz_wing_key):
+        #             wing_candidate[yz_candidate] = (r, c)
+        #             wing_candidate['col'] = c
 
-
-
-
-
+        
+        # print(f'[upd] xyz_wing_candidates: {xyz_wing_candidates}')
 
 
 
@@ -292,7 +365,7 @@ def main():
     grid = last_resolved
     candidates = last_resolved_candidates
     
-    xyz_wing(grid, candidates)
+    xyz_wing_1(grid, candidates)
     
     # print(f'tmp sudoku solver start\n')
     # print_sudoku(last_resolved)
