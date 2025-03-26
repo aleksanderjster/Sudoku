@@ -3,17 +3,20 @@ from sudoku_functions import print_sudoku, get_units, get_boxes
 
 def xyz_wing_1(grid, candidates):
 
-    boxes = get_boxes(grid) # get coordinates 
-    box_candidates = {}
+    boxes = get_boxes(grid) # get boxes coordinates 
+    units = get_units(grid) # get row/col/box coordinates     
     n = 0
     for box in boxes:
-        
+        box_candidates = {}
+        # print(f'box {n} coordinates: {box}')
         for row, col in box:        
             key = tuple(candidates[row][col])
             if key not in box_candidates:
                 box_candidates[key] = []
             box_candidates[key].append((row, col))
 
+        # removing candidates which have more then 2 and 3 candidates
+        # removing candidates which have more than 1 instance in box
         keys_to_remove = []
         for key in box_candidates.keys():
             if len(box_candidates[key]) != 1:
@@ -26,10 +29,47 @@ def xyz_wing_1(grid, candidates):
         for key in keys_to_remove:
             box_candidates.pop(key)
 
+        keys_to_save = []
         for key in box_candidates.keys():
-            
+            for key2 in box_candidates.keys():
+                if set(key).issubset(key2) and set(key) != set(key2):
+                    keys_to_save.append([key, key2])
 
-        print(f'box {n} candidates: {box_candidates}')
+        yz_candidates = []
+        for wing_candidate in keys_to_save:
+            pivot_candidate = ()
+            xz_wing_candidate = ()
+            if len(wing_candidate[0]) == 3:
+                pivot_candidate = wing_candidate[0]
+                xz_wing_candidate = wing_candidate[1]
+            else:
+                pivot_candidate = wing_candidate[1]
+                xz_wing_candidate = wing_candidate[0]
+
+            print(f'box {n} pivot: {pivot_candidate} xz: {xz_wing_candidate}')
+        
+            pivot_row, pivot_col = list(box_candidates[pivot_candidate])[0]
+            xz_row, xz_col = list(box_candidates[xz_wing_candidate])[0]
+
+            yz_coordinates = []
+            yz_wing_candidate = ()
+            if pivot_row != xz_row:
+                yz_coordinates = units[pivot_row]
+
+            for row, col in yz_coordinates:
+                yz_key_candidate = candidates[row][col]
+                if yz_key_candidate == set(): continue                          # not empty candidates
+                if set(yz_key_candidate) == set(pivot_candidate): continue      # not itself
+                if set(yz_key_candidate) == set(xz_wing_candidate): continue    # not like as xz candidate
+
+
+                if set(yz_key_candidate).issubset(set(pivot_candidate)):
+                    yz_candidates.append(tuple(yz_key_candidate))
+                    print(f'box {n} yz: {yz_key_candidate}')
+
+        
+        # print(f'box {n} candidates: {box_candidates}')
+        # print(f'box {n} keys_to_save: {keys_to_save}')
         n += 1
 
 
