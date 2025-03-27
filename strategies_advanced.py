@@ -29,47 +29,91 @@ def xyz_wing_1(grid, candidates):
         for key in keys_to_remove:
             box_candidates.pop(key)
 
+
+        # Filtering out potential pairs of xyz wings in box
         keys_to_save = []
         for key in box_candidates.keys():
             for key2 in box_candidates.keys():
                 if set(key).issubset(key2) and set(key) != set(key2):
                     keys_to_save.append([key, key2])
 
+
+        # check every potential pair of xyz wing in the box for existance of yz wing.
         yz_candidates = []
-        for wing_candidate in keys_to_save:
+        xyz_wing = []
+        for wing_candidate in keys_to_save:            
             pivot_candidate = ()
             xz_wing_candidate = ()
+
+            # filter out pivot and xz candidate for future operations
             if len(wing_candidate[0]) == 3:
                 pivot_candidate = wing_candidate[0]
                 xz_wing_candidate = wing_candidate[1]
             else:
                 pivot_candidate = wing_candidate[1]
                 xz_wing_candidate = wing_candidate[0]
-
-            print(f'box {n} pivot: {pivot_candidate} xz: {xz_wing_candidate}')
+            
+            # print out result wing candidates in the box
+            # print(f'box {n} pivot: {pivot_candidate} xz: {xz_wing_candidate}')
         
+
+            # seek for yz wing 
             pivot_row, pivot_col = list(box_candidates[pivot_candidate])[0]
             xz_row, xz_col = list(box_candidates[xz_wing_candidate])[0]
 
-            yz_coordinates = []
-            yz_wing_candidate = ()
-            if pivot_row != xz_row:
-                yz_coordinates = units[pivot_row]
 
+            yz_coordinates = []
+            yz_wing_candidate = {}
+            yz_wing_unit = []           # list coordinates on which affects the yz wing
+            # seek yz candidate in pivot row if pivot and xz not in same row.
+            if pivot_row != xz_row:
+                yz_wing_unit.append(units[pivot_row])
+                for point in units[pivot_row]:
+                    yz_coordinates.append(point)                     
+
+            # seek yz candidate in pivot row if pivot and xz not in same row.
+            if pivot_col != xz_col:
+                yz_wing_unit.append(units[pivot_col + 9])
+                for point in units[pivot_col + 9]:
+                    yz_coordinates.append(point)
+            
+
+            # verification candidate for yz wing candidate.
             for row, col in yz_coordinates:
                 yz_key_candidate = candidates[row][col]
                 if yz_key_candidate == set(): continue                          # not empty candidates
                 if set(yz_key_candidate) == set(pivot_candidate): continue      # not itself
                 if set(yz_key_candidate) == set(xz_wing_candidate): continue    # not like as xz candidate
 
-
+                # verifying candidate for yz wing
                 if set(yz_key_candidate).issubset(set(pivot_candidate)):
-                    yz_candidates.append(tuple(yz_key_candidate))
-                    print(f'box {n} yz: {yz_key_candidate}')
-
+                    yz_wing_candidate[tuple(yz_key_candidate)] = (row, col)
+                    
+            # forming xyz wings for box if they are
+            for yz_wing_key in yz_wing_candidate.keys():
+                wing = {
+                    pivot_candidate: (pivot_row, pivot_col),
+                    xz_wing_candidate: (xz_row, xz_col),
+                    yz_wing_key: yz_wing_candidate[yz_wing_key]
+                    }
+                xyz_wing.append(wing)  
+            
         
+        if len(xyz_wing) != 3: continue     # skip step if no wings found
+
+        # cleaning box from unnesesary candidates
+        for wing in xyz_wing:
+            for row, col in box:
+                clean_candidate = candidates[row][col]
+                if set(clean_candidate) == set(): continue              #not for empty keys
+                wing_keys = wing.keys()
+                if set(clean_candidate) == set(wing_keys[0]):continue
+                if set(clean_candidate) == set(wing_keys[1]):continue
+
+
+
         # print(f'box {n} candidates: {box_candidates}')
-        # print(f'box {n} keys_to_save: {keys_to_save}')
+        print(f'box {n} wings: {xyz_wing}')
         n += 1
 
 
