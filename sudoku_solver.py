@@ -5,7 +5,7 @@ from sudoku_functions import print_sudoku, clean_candidates
 from strategies_simple import naked_numbers
 from strategies_intermediate import hidden_numbers, hidden_pairs_tuples, strike_out_row_column_candidates
 from strategies_intermediate import clean_row_column_only_possible_in_box_candidates
-
+from strategies_advanced import xyz_wing
 
 # seeks all available naked numbers in sudoku grid
 def find_naked_numbers(grid, candidates):
@@ -70,6 +70,20 @@ def clean_row_col_candidates_in_box(grid, candidates):
     return row_col_candidates_found
 
 
+def clean_due_xyz_wing(grid, candidates):
+    xyz_wing_found = False
+
+    while True:
+        status = False
+        if xyz_wing(grid, candidates):
+            xyz_wing_found = True
+            status = True
+        
+        if not status: break
+    
+    return xyz_wing_found
+
+
 def main ():
     candidates = [[set(range(1, 10)) if cell == 0 else set() for cell in row] for row in sudoku_grid]
 
@@ -128,9 +142,14 @@ def main ():
             continue
 
         # XZY-Wing strategies
+        xyz_wing_found = clean_due_xyz_wing(sudoku_grid, candidates)
+        if xyz_wing_found:
+            loop_status = True
+            print(candidates)
+            continue
 
-
-        if not loop_status: 
+        if not loop_status:
+            # chek if all candidates are found 
             print(f'\nINFO: All strategies fails to resolve sudoku')
             print(sudoku_grid)
             print(candidates)
